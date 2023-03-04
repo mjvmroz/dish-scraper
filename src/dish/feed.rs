@@ -23,7 +23,7 @@ fn format_slug(slug: &str) -> String {
 }
 
 fn pointers(description: Html) -> HashSet<String> {
-    let link_slug_re = Regex::new(r"(?i)congressionaldish.com/(?P<slug>cd-?[0-9]+)[^a-z0-9]")
+    let link_slug_re = Regex::new(r"(?i)congressionaldish.com/(?P<slug>cd-?\d+)[^a-z0-9]")
         .expect("Whoops, illegal regex");
     description
         .select(&Selector::parse("a").unwrap())
@@ -41,7 +41,7 @@ impl TryFrom<rss::Item> for Episode {
 
     fn try_from(item: rss::Item) -> Result<Self, Self::Error> {
         let link_text_re =
-            Regex::new(r"^(?P<slug>CD\d+): (?P<title>.*)$").expect("Whoops, illegal regex");
+            Regex::new(r"(?i)^(?P<slug>cd-?\d+):? (?P<title>.*)$").expect("Whoops, illegal regex");
         let title = item.title.ok_or(ScraperError::MissingTitle)?;
         let captures = link_text_re
             .captures(&title)

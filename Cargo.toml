@@ -1,0 +1,15 @@
+[package]
+edition = "2021"
+name = "dish-graph"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+regex = "1.7.1"
+reqwest = {version = "0.11.14", features = ["json"]}
+rss = "2.0.2"
+scraper = "0.14.0"
+serde = {version = "1.0.152", features = ["derive"]}
+serde_json = "1.0.93"
+tokio = {version = "1.25.0", features = ["full"]}

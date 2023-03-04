@@ -51,13 +51,15 @@ impl TryFrom<rss::Item> for Episode {
         let title = captures["title"].to_string();
         let pointers = item
             .description
-            .map(|html| pointers(Html::parse_fragment(html.as_str())))
+            .as_ref()
+            .map(|html| pointers(Html::parse_fragment(html)))
             .unwrap_or_default();
 
         Ok(Self {
             slug,
             title,
             pointers,
+            description: item.description,
         })
     }
 }
@@ -67,6 +69,7 @@ pub(crate) struct Episode {
     pub slug: String,
     pub title: String,
     pub pointers: HashSet<String>,
+    pub description: Option<String>,
 }
 
 impl Episode {

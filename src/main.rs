@@ -5,8 +5,22 @@ use std::{collections::HashMap, fs::File};
 
 use dish::feed::rss_channel;
 use err::LazyResult;
+use tokio::fs;
 
 use crate::dish::feed::Episode;
+
+async fn persist_episodes(episodes: HashMap<String, Episode>) -> LazyResult<()> {
+    fs::create_dir("output").await?;
+
+    let mut json_file = File::create("output/episodes.json")?;
+    serde_json::to_writer(&mut json_file, &episodes)?;
+    drop(json_file);
+
+    let mut cbor_file = File::create("output/episodes.cbor")?;
+    serde_cbor::ser::to_writer(&mut cbor_file, &episodes)?;
+    drop(cbor_file);
+    Ok(())
+}
 
 #[tokio::main]
 async fn main() -> LazyResult<()> {
@@ -18,13 +32,5 @@ async fn main() -> LazyResult<()> {
         .map(|e| (e.slug.clone(), e))
         .collect();
 
-    let mut json_file = File::create("output/episodes.json")?;
-    serde_json::to_writer(&mut json_file, &episodes)?;
-    drop(json_file);
-
-    let mut cbor_file = File::create("output/episodes.cbor")?;
-    serde_cbor::ser::to_writer(&mut cbor_file, &episodes)?;
-    drop(cbor_file);
-
-    Ok(())
+    persist_episodes(episodes).await
 }

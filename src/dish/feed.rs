@@ -1,5 +1,8 @@
 use std::collections::HashSet;
 
+use chrono::serde::ts_milliseconds;
+
+use chrono::{DateTime, Utc};
 use regex::Regex;
 use rss::Channel;
 use scraper::{Html, Selector};
@@ -19,7 +22,7 @@ pub(crate) async fn rss_channel() -> LazyResult<Channel> {
 }
 
 fn format_slug(slug: &str) -> String {
-    slug.replace("-", "").to_uppercase()
+    slug.replace("-", "").to_uppercase().replace("CD", "CD-")
 }
 
 fn pointers(description: Html) -> HashSet<String> {
@@ -49,17 +52,33 @@ impl TryFrom<rss::Item> for Episode {
 
         let slug = format_slug(&captures["slug"]);
         let title = captures["title"].to_string();
+        let published_at: DateTime<Utc> = item
+            .pub_date
+            .ok_or(ScraperError::MissingPublishDate)
+            .map(|date| {
+                DateTime::parse_from_rfc2822(&date)
+                    .unwrap()
+                    .with_timezone(&Utc)
+            })
+            .map_err(|_| ScraperError::MissingPublishDate)?;
         let pointers = item
             .description
             .as_ref()
-            .map(|html| pointers(Html::parse_fragment(html)))
+            .map(|html| {
+                let mut ps = pointers(Html::parse_fragment(html));
+                ps.remove(&slug);
+                ps
+            })
             .unwrap_or_default();
+
+        let preview = item.itunes_ext.and_then(|ext| ext.subtitle);
 
         Ok(Self {
             slug,
             title,
+            published_at,
             pointers,
-            description: item.description,
+            preview,
         })
     }
 }
@@ -67,13 +86,9 @@ impl TryFrom<rss::Item> for Episode {
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Episode {
     pub slug: String,
+    #[serde(with = "ts_milliseconds")]
+    pub published_at: DateTime<Utc>,
     pub title: String,
     pub pointers: HashSet<String>,
-    pub description: Option<String>,
-}
-
-impl Episode {
-    pub(crate) fn page_url(&self) -> String {
-        format!("https://congressionaldish.com/{}", self.slug)
-    }
+    pub preview: Option<String>,
 }

@@ -1,23 +1,23 @@
 mod dish;
 mod err;
 
-use std::{collections::HashMap, fs::File};
+use std::fs::File;
 
+use dish::edge_filter::{analyze, CongressionalGraph};
 use dish::feed::rss_channel;
 use err::LazyResult;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
-use crate::dish::edge_filter::adjacency_reduced_edges;
 use crate::dish::feed::Episode;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct EpisodeData {
     episodes: Vec<Episode>,
-    adjacency_reduced_edges: HashMap<usize, usize>,
+    adjacency_reduced_edges: Vec<(usize, usize)>,
 }
 
-async fn persist_episodes(data: EpisodeData) -> LazyResult<()> {
+async fn persist(data: CongressionalGraph) -> LazyResult<()> {
     if !fs::metadata("output").await.is_ok() {
         fs::create_dir("output").await?;
     }
@@ -35,20 +35,11 @@ async fn persist_episodes(data: EpisodeData) -> LazyResult<()> {
 #[tokio::main]
 async fn main() -> LazyResult<()> {
     let resp = rss_channel().await?;
-    let mut episodes: Vec<Episode> = resp
+    let episodes: Vec<Episode> = resp
         .items
         .iter()
         .flat_map(|item| Episode::try_from(item.to_owned()).ok())
         .collect();
 
-    episodes.sort_by_key(|ep| ep.number);
-
-    let adjacency_reduced_edges = adjacency_reduced_edges(&episodes);
-
-    let data = EpisodeData {
-        episodes,
-        adjacency_reduced_edges,
-    };
-
-    persist_episodes(data).await
+    persist(analyze(episodes)).await
 }

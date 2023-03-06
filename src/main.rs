@@ -6,16 +6,9 @@ use std::fs::File;
 use dish::edge_filter::{analyze, CongressionalGraph};
 use dish::feed::rss_channel;
 use err::LazyResult;
-use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::dish::feed::Episode;
-
-#[derive(Debug, Serialize, Deserialize)]
-struct EpisodeData {
-    episodes: Vec<Episode>,
-    adjacency_reduced_edges: Vec<(usize, usize)>,
-}
 
 async fn persist(data: CongressionalGraph) -> LazyResult<()> {
     if !fs::metadata("output").await.is_ok() {

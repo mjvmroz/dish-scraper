@@ -63,6 +63,7 @@ pub(crate) fn adjacency_reduced_edges(sorted_episodes: &Vec<Episode>) -> Vec<(us
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct CongressionalGraph {
     episodes: Vec<Episode>,
+    adjacency_reduced_edges: Vec<(usize, usize)>,
     networks: Vec<Network>,
 }
 
@@ -133,7 +134,11 @@ pub(crate) fn analyze(episodes: Vec<Episode>) -> CongressionalGraph {
         sorted
     };
     let tred = adjacency_reduced_edges(&episodes);
-    let networks = networks(tred);
+    let networks = networks(tred.clone());
 
-    CongressionalGraph { episodes, networks }
+    CongressionalGraph {
+        episodes,
+        networks,
+        adjacency_reduced_edges: tred,
+    }
 }

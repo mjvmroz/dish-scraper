@@ -1,3 +1,3 @@
 {
-  "vscode-pets.petType": "crab"
+  "rust-analyzer.linkedProjects": ["./Cargo.toml", "./Cargo.toml"]
 }

@@ -31,6 +31,12 @@ fn pointers(description: Html) -> HashSet<usize> {
 
     description
         .select(&Selector::parse("a").unwrap())
+        .filter(|a| {
+            a.value()
+                .attr("rel")
+                .filter(|rel| (**rel).eq("prev"))
+                .is_none()
+        })
         .filter_map(|a| a.value().attr("href"))
         .filter_map(|href| {
             link_slug_re

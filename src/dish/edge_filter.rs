@@ -13,15 +13,17 @@ use crate::dish::feed::Episode;
  * Takes a list of episodes and returns the minimal set of edges
  * that can be used to construct a DAG with the same topological sort.
  */
-pub(crate) fn adjacency_reduced_edges(sorted_episodes: &Vec<Episode>) -> Vec<(usize, usize)> {
+pub(crate) fn adjacency_reduced_edges(
+    sorted_episodes: &Vec<(usize, Vec<usize>)>,
+) -> Vec<(usize, usize)> {
     let mut dag = Dag::<(), usize, usize>::new();
 
     let mut node_indices: HashMap<usize, NodeIndex<usize>> = HashMap::new();
 
-    sorted_episodes.iter().for_each(|episode| {
+    sorted_episodes.iter().for_each(|(number, pointers)| {
         let node_idx = dag.add_node(());
-        node_indices.insert(episode.number, node_idx);
-        episode.pointers.iter().for_each(|reference| {
+        node_indices.insert(*number, node_idx);
+        pointers.iter().for_each(|reference| {
             dag.add_edge(
                 node_indices
                     .get(reference)
@@ -36,7 +38,7 @@ pub(crate) fn adjacency_reduced_edges(sorted_episodes: &Vec<Episode>) -> Vec<(us
 
     let toposort: Vec<NodeIndex<usize>> = sorted_episodes
         .iter()
-        .map(|e| *node_indices.get(&e.number).expect("Missing node index"))
+        .map(|(number, _)| *node_indices.get(number).expect("Missing node index"))
         .collect();
 
     let (intermediate, _) =
@@ -127,13 +129,16 @@ fn networks(tred: Vec<(usize, usize)>) -> Vec<Network> {
     Subnetworks::from_iter(tred.into_iter()).networks
 }
 
-pub(crate) fn analyze(episodes: Vec<Episode>) -> CongressionalGraph {
+pub(crate) fn analyze(
+    episodes: Vec<Episode>,
+    links: Vec<(usize, Vec<usize>)>,
+) -> CongressionalGraph {
     let episodes = {
         let mut sorted = episodes;
         sorted.sort_by_key(|ep| ep.number);
         sorted
     };
-    let tred = adjacency_reduced_edges(&episodes);
+    let tred = adjacency_reduced_edges(&links);
     let networks = networks(tred.clone());
 
     CongressionalGraph {

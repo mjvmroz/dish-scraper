@@ -22,6 +22,7 @@ async fn persist(data: CongressionalGraph) -> LazyResult<()> {
     let mut cbor_file = File::create("output/episodes.cbor")?;
     serde_cbor::ser::to_writer(&mut cbor_file, &data)?;
     drop(cbor_file);
+
     Ok(())
 }
 
@@ -34,5 +35,11 @@ async fn main() -> LazyResult<()> {
         .flat_map(|item| Episode::try_from(item.to_owned()).ok())
         .collect();
 
-    persist(analyze(episodes)).await
+    // TODO: Actually fetch the links
+    let links: Vec<(usize, Vec<usize>)> = episodes
+        .iter()
+        .map(|ep| (ep.number, [ep.number].into()))
+        .collect();
+
+    persist(analyze(episodes, links)).await
 }

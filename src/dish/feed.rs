@@ -70,15 +70,6 @@ impl TryFrom<rss::Item> for Episode {
                     .with_timezone(&Utc)
             })
             .map_err(|_| ScraperError::MissingPublishDate)?;
-        let pointers = item
-            .description
-            .as_ref()
-            .map(|html| {
-                let mut ps = pointers(Html::parse_fragment(html));
-                ps.remove(&number);
-                ps
-            })
-            .unwrap_or_default();
 
         let preview = item.itunes_ext.and_then(|ext| ext.subtitle);
 
@@ -87,7 +78,6 @@ impl TryFrom<rss::Item> for Episode {
             number,
             title,
             published_at,
-            pointers,
             preview,
         })
     }
@@ -100,6 +90,5 @@ pub(crate) struct Episode {
     #[serde(with = "ts_milliseconds")]
     pub published_at: DateTime<Utc>,
     pub title: String,
-    pub pointers: HashSet<usize>,
     pub preview: Option<String>,
 }

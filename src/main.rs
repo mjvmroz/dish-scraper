@@ -45,11 +45,12 @@ async fn main() -> LazyResult<()> {
         episodes
             .len()
             .try_into()
-            .expect("Jesus. Jen's gone insane."),
+            .expect("Jen's gone insane. She can't be stopped."),
     );
     for episode in &episodes {
-        let ep_links = fetch_links(&episode.slug).await?;
-        links.push((episode.number, ep_links));
+        let ep_links = fetch_links(episode.number).await?;
+        links.push((episode.number, ep_links.clone()));
+        pb.set_message(format!("Episode {}: {:?}", episode.number, ep_links));
         pb.inc(1);
     }
     pb.finish();

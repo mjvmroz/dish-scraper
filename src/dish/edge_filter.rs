@@ -138,6 +138,11 @@ pub(crate) fn analyze(
         sorted.sort_by_key(|ep| ep.number);
         sorted
     };
+    let links = {
+        let mut sorted = links;
+        sorted.sort_by_key(|(num, _)| *num);
+        sorted
+    };
     let tred = adjacency_reduced_edges(&links);
     let networks = networks(tred.clone());
 

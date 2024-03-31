@@ -1,5 +1,6 @@
 pub(crate) mod edge_filter;
 pub(crate) mod feed;
+pub(crate) mod site;
 
 use std::{error::Error, fmt::Display};
 

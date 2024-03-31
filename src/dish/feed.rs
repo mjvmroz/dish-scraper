@@ -1,11 +1,8 @@
-use std::collections::HashSet;
-
 use chrono::serde::ts_milliseconds;
 
 use chrono::{DateTime, Utc};
 use regex::Regex;
 use rss::Channel;
-use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
 
 use crate::err::LazyResult;
@@ -23,27 +20,6 @@ pub(crate) async fn rss_channel() -> LazyResult<Channel> {
 
 fn slug_from_num_str(num_str: &str) -> String {
     format!("CD-{}", num_str)
-}
-
-fn pointers(description: Html) -> HashSet<usize> {
-    let link_slug_re = Regex::new(r"(?i)congressionaldish.com/cd-?(?P<num>\d+)[^a-z0-9]")
-        .expect("Whoops, illegal regex");
-
-    description
-        .select(&Selector::parse("a").unwrap())
-        .filter(|a| {
-            a.value()
-                .attr("rel")
-                .filter(|rel| (**rel).eq("prev"))
-                .is_none()
-        })
-        .filter_map(|a| a.value().attr("href"))
-        .filter_map(|href| {
-            link_slug_re
-                .captures(href)
-                .map(|captures| captures["num"].parse().expect("Failed to parse number"))
-        })
-        .collect()
 }
 
 impl TryFrom<rss::Item> for Episode {

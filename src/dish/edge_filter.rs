@@ -14,16 +14,16 @@ use crate::dish::feed::Episode;
  * that can be used to construct a DAG with the same topological sort.
  */
 pub(crate) fn adjacency_reduced_edges(
-    sorted_episodes: &Vec<(usize, Vec<usize>)>,
+    sorted_links: &Vec<(usize, HashSet<usize>)>,
 ) -> Vec<(usize, usize)> {
     let mut dag = Dag::<(), usize, usize>::new();
 
     let mut node_indices: HashMap<usize, NodeIndex<usize>> = HashMap::new();
 
-    sorted_episodes.iter().for_each(|(number, pointers)| {
+    sorted_links.iter().for_each(|(number, links)| {
         let node_idx = dag.add_node(());
         node_indices.insert(*number, node_idx);
-        pointers.iter().for_each(|reference| {
+        links.iter().for_each(|reference| {
             dag.add_edge(
                 node_indices
                     .get(reference)
@@ -36,7 +36,7 @@ pub(crate) fn adjacency_reduced_edges(
         });
     });
 
-    let toposort: Vec<NodeIndex<usize>> = sorted_episodes
+    let toposort: Vec<NodeIndex<usize>> = sorted_links
         .iter()
         .map(|(number, _)| *node_indices.get(number).expect("Missing node index"))
         .collect();
@@ -131,7 +131,7 @@ fn networks(tred: Vec<(usize, usize)>) -> Vec<Network> {
 
 pub(crate) fn analyze(
     episodes: Vec<Episode>,
-    links: Vec<(usize, Vec<usize>)>,
+    links: Vec<(usize, HashSet<usize>)>,
 ) -> CongressionalGraph {
     let episodes = {
         let mut sorted = episodes;

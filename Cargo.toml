@@ -8,6 +8,7 @@ version = "0.1.0"
 [dependencies]
 chrono = {version = "0.4.23", features = ["serde"]}
 daggy = "0.8.0"
+indicatif = "0.17.8"
 dtparse = "2.0.0"
 petgraph = "0.6.3"
 regex = "1.7.1"

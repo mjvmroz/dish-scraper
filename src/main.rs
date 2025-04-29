@@ -4,13 +4,11 @@ mod err;
 use std::fs::File;
 
 use dish::edge_filter::{analyze, CongressionalGraph};
-use dish::feed::rss_channel;
+use dish::feed::{rss_channel, Episode};
 use dish::site::fetch_links;
 use err::LazyResult;
 use indicatif::ProgressBar;
 use tokio::fs;
-
-use crate::dish::feed::Episode;
 
 async fn persist(data: CongressionalGraph) -> LazyResult<()> {
     if !fs::metadata("output").await.is_ok() {
